@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Small Sized Grit · 3D Preview</title>
+<meta name="description" content="Explore the revised UnseenDisplay studio building.">
+<script type="module" src="./model-viewer.min.js"></script>
+<style>
+:root{color-scheme:light;font-family:"Segoe UI",system-ui,sans-serif;color:#191918;background:#eeede9}
+*{box-sizing:border-box}body{margin:0}main{margin:auto;max-width:1220px;padding:clamp(16px,4vw,52px)}
+header{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:22px}
+p{margin:0}.studio{font-size:.83rem;font-weight:650;color:#54534d}
+h1{font-size:clamp(2.1rem,6vw,4.65rem);line-height:.98;letter-spacing:-.07em;margin:8px 0 0;font-weight:770}
+a{color:inherit;font-weight:650;text-underline-offset:.25em}
+.stage{border:1px solid #c9c8c1;background:#f8f8f6;position:relative}
+model-viewer{width:100%;height:clamp(340px,62vh,690px);display:block;--progress-bar-color:#222;--progress-bar-height:3px}
+#status{position:absolute;bottom:12px;left:16px;right:16px;text-align:center;font-size:.84rem;color:#4b4a45;pointer-events:none}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{border:1px solid #b7b6b0;background:#f8f8f6;border-radius:4px;padding:9px 13px;min-height:44px;font:inherit;font-size:.88rem;font-weight:650;color:inherit;cursor:pointer}
+button:hover{background:#dddcd5}button[aria-pressed=true]{background:#222;color:#fff;border-color:#222}button:disabled{opacity:.46;cursor:default}
+:focus-visible{outline:2px solid #0064b3;outline-offset:3px}
+@media(max-width:600px){
+main{padding:16px}header{align-items:start;gap:8px;margin-bottom:16px}
+header a{font-size:.8rem;flex-shrink:0;margin-top:2px}
+model-viewer{height:clamp(300px,53svh,540px)}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+button{padding:7px 4px;font-size:.8rem}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><p class="studio">UnseenDisplay Studio</p><h1>Small Sized Grit</h1></div>
+    <a href="./artwork-preview.jpg" target="_blank" rel="noopener">View stills</a>
+  </header>
+  <div class="stage">
+    <model-viewer src="./building.glb" alt="3D model of the revised UnseenDisplay studio building"
+      camera-controls touch-action="pan-y" environment-image="neutral" exposure="1"
+      camera-orbit="43deg 68deg auto" min-camera-orbit="auto 0deg 8m" field-of-view="30deg"
+      interaction-prompt="none"></model-viewer>
+    <p id="status" role="status">Loading 3D model…</p>
+  </div>
+  <nav class="controls" aria-label="Building views">
+    <button type="button" data-orbit="43deg 68deg auto" aria-pressed="true" disabled>Overview</button>
+    <button type="button" data-orbit="-90deg 90deg auto" aria-pressed="false" disabled>DARK SIDE wall</button>
+    <button type="button" data-orbit="76deg 77deg auto" aria-pressed="false" disabled>Ghost wall</button>
+    <button type="button" data-orbit="0deg 90deg auto" aria-pressed="false" disabled>UNSEEN wall</button>
+    <button type="button" data-orbit="49deg 90deg 12m" data-target="-1.87m 1.13m 1.71m" aria-pressed="false" disabled>Garage</button>
+    <button type="button" data-orbit="180deg 0deg auto" aria-pressed="false" disabled>Roof</button>
+  </nav>
+  <noscript>Enable JavaScript to explore the building in 3D.</noscript>
+</main>
+<script>
+const viewer = document.querySelector('model-viewer');
+const statusLine = document.querySelector('#status');
+const buttons = Array.from(document.querySelectorAll('[data-orbit]'));
+const hint = matchMedia('(pointer: coarse)').matches
+  ? 'Drag to rotate · Pinch to zoom'
+  : 'Drag to rotate · Scroll to zoom';
+const fallback = setTimeout(() => {
+  statusLine.textContent = 'The 3D viewer is taking longer than expected. You can open the stills above.';
+}, 18000);
+viewer.addEventListener('load', () => {
+  clearTimeout(fallback);
+  statusLine.textContent = hint;
+  buttons.forEach(button => { button.disabled = false; });
+});
+viewer.addEventListener('error', () => {
+  clearTimeout(fallback);
+  statusLine.textContent = 'The 3D model could not load. You can open the stills above.';
+});
+function highlight(active) {
+  buttons.forEach(button => button.setAttribute('aria-pressed', String(button === active)));
+}
+buttons.forEach(button => {
+  button.addEventListener('click', () => {
+    viewer.cameraTarget = button.dataset.target ?? "auto auto auto";
+    viewer.cameraOrbit = button.dataset.orbit;
+    viewer.fieldOfView = '30deg';
+    highlight(button);
+  });
+});
+viewer.addEventListener('camera-change', event => {
+  if (event.detail.source === 'user-interaction') highlight(null);
+});
+</script>
+</body>
+</html>
